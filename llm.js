@@ -5,15 +5,16 @@ const GEMINI_MODELS = [
 ];
 
 const PROMPTS = {
-  tutor: `Solve step-by-step, max 4 steps. ALL math in LaTeX $..$ or $$..$$. No tables. Last line if graphable: PLOT: latex_expr (e.g. PLOT: x^2-5x+3)`,
+  tutor: `Give the approach and solution briefly. Max 3 steps. Math in LaTeX $..$ or $$..$$. No tables, no long explanations. End with PLOT: latex_expr if graphable (e.g. PLOT: x^2-5x+3).`,
 
   deepen: `2-3 sentences: why this works, connect to bigger picture. Math in LaTeX $..$.`,
 
-  practice: `ONLY output JSON: [{"problem":"..","answer":".."},{"problem":"..","answer":".."},{"problem":"..","answer":".."}] with LaTeX in strings.`,
+  practice: `Generate 3 practice problems similar to what the student is working on. You MUST respond with ONLY valid JSON, no other text before or after. Format:
+[{"problem":"problem text with $LaTeX$","answer":"answer"},{"problem":"...","answer":"..."},{"problem":"...","answer":"..."}]`,
 
   check: '{"correct":true/false,"feedback":"1 sentence"}',
 
-  followup: `Answer the student's follow-up question about the math problem. Be concise (2-4 sentences). ALL math in LaTeX $..$ or $$..$$. No tables.`,
+  followup: `Answer concisely (2-3 sentences). Math in LaTeX $..$ or $$..$$. No tables.`,
 };
 
 async function callLLM(systemPrompt, userPrompt) {

@@ -83,12 +83,13 @@ async function submitHomework() {
   // Show results
   document.getElementById('results-section').classList.remove('hidden');
 
-  // Reset cards
-  document.getElementById('tutor-response').innerHTML = skeleton(4);
-  document.getElementById('deepen-response').innerHTML = skeleton(3);
+  // Reset cards + follow-up history
+  document.getElementById('tutor-response').innerHTML = skeleton(3);
+  document.getElementById('deepen-response').innerHTML = skeleton(2);
   document.getElementById('practice-response').innerHTML = skeleton(2);
   document.getElementById('graph-card').classList.add('hidden');
   document.getElementById('plot-container').innerHTML = '';
+  document.getElementById('followup-history').innerHTML = '';
 
   // Collapse the dropdowns
   document.querySelectorAll('.toggle-header').forEach(h => h.classList.remove('open'));
@@ -135,8 +136,14 @@ async function submitHomework() {
     if (Array.isArray(problems) && problems.length > 0) {
       renderPracticeProblems(problems, practiceEl);
     } else {
-      practiceEl.innerHTML = renderMarkdown(practiceResult.value);
-      renderMath(practiceEl);
+      // Fallback: try to parse numbered problems from text
+      const parsed = parseProblemsFromText(practiceResult.value);
+      if (parsed.length > 0) {
+        renderPracticeProblems(parsed, practiceEl);
+      } else {
+        practiceEl.innerHTML = renderMarkdown(practiceResult.value);
+        renderMath(practiceEl);
+      }
     }
   } else {
     practiceEl.innerHTML = errorHTML(practiceResult.reason);
@@ -144,6 +151,28 @@ async function submitHomework() {
 }
 
 // ===== Practice Problems =====
+function parseProblemsFromText(text) {
+  // Try to find numbered problems like "1. ...", "2. ...", "3. ..."
+  const lines = text.split('\n').filter(l => l.trim());
+  const problems = [];
+  for (const line of lines) {
+    const match = line.match(/^\d+[\.\)]\s*(.+)/);
+    if (match) {
+      problems.push({ problem: match[1].trim(), answer: '' });
+    }
+  }
+  // Also try bullet points
+  if (problems.length === 0) {
+    for (const line of lines) {
+      const match = line.match(/^[-*•]\s*(.+)/);
+      if (match) {
+        problems.push({ problem: match[1].trim(), answer: '' });
+      }
+    }
+  }
+  return problems;
+}
+
 function renderPracticeProblems(problems, container) {
   container.innerHTML = problems.map((p, i) => `
     <div class="practice-problem" data-answer="${encodeURIComponent(p.answer || '')}">
