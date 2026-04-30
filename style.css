@@ -243,6 +243,24 @@ input, textarea { font-family: var(--font); }
   transition: max-height 0.4s ease, padding 0.2s ease;
 }
 
+/* Tables */
+.md-table {
+  width: 100%; border-collapse: collapse; margin: 0.8rem 0;
+  font-size: 0.9rem;
+}
+.md-table th, .md-table td {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid rgba(139,92,246,0.15);
+  text-align: left;
+}
+.md-table th {
+  background: rgba(139,92,246,0.08);
+  font-weight: 600; font-size: 0.85rem;
+  color: var(--text);
+}
+.md-table td { color: var(--text-muted); }
+.md-table tr:nth-child(even) td { background: rgba(139,92,246,0.03); }
+
 /* Plot */
 #plot-container { min-height: 300px; border-radius: var(--radius-sm); }
 #graph-card.hidden { display: none; }

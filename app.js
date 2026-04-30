@@ -192,27 +192,10 @@ window.checkPractice = checkPractice;
 function tryPlot(expr) {
   const container = document.getElementById('plot-container');
   try {
-    let clean = expr
-      .replace(/\\/g, '')
-      .replace(/\{/g, '(').replace(/\}/g, ')')
-      .replace(/\^/g, '**')
-      .replace(/sin/g, 'Math.sin')
-      .replace(/cos/g, 'Math.cos')
-      .replace(/tan/g, 'Math.tan')
-      .replace(/sqrt/g, 'Math.sqrt')
-      .replace(/ln/g, 'Math.log')
-      .replace(/log/g, 'Math.log')
-      .replace(/exp/g, 'Math.exp')
-      .replace(/pi/g, 'Math.PI')
-      .replace(/abs/g, 'Math.abs');
-    plotFunction(clean, container);
-  } catch (e) {
-    try {
-      plotFunction(expr.replace(/\^/g, '**'), container);
-    } catch {
-      container.innerHTML = '';
-      document.getElementById('graph-card').classList.add('hidden');
-    }
+    plotFunction(expr, container);
+  } catch {
+    container.innerHTML = '';
+    document.getElementById('graph-card').classList.add('hidden');
   }
 }
 
