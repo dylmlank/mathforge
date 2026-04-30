@@ -8,13 +8,13 @@ const MODELS = [
 ];
 
 const PROMPTS = {
-  tutor: `Solve step-by-step, concise, max 4 steps. ALL math in LaTeX: $x^2$ inline, $$x=5$$ block. No tables. If graphable, last line: PLOT:js_expr (use ** for power, Math.sin etc). Example: PLOT:x**2-5*x+3`,
+  tutor: `Solve step-by-step, max 4 steps. ALL math in LaTeX $..$ or $$..$$. No tables. Last line if graphable: PLOT: latex_expr (e.g. PLOT: x^2-5x+3)`,
 
-  deepen: `In 2-3 sentences explain WHY this works and connect to related concepts. ALL math in LaTeX $..$ or $$..$$. No tables.`,
+  deepen: `2-3 sentences: why this works, connect to bigger picture. Math in LaTeX $..$.`,
 
-  practice: `Output ONLY JSON array, no other text: [{"problem":"...","answer":"..."}] with 3 similar problems. Use LaTeX $..$ in problem strings.`,
+  practice: `ONLY output JSON: [{"problem":"..","answer":".."},{"problem":"..","answer":".."},{"problem":"..","answer":".."}] with LaTeX in strings.`,
 
-  check: 'Reply ONLY: {"correct":true/false,"feedback":"1 sentence"}',
+  check: '{"correct":true/false,"feedback":"1 sentence"}',
 };
 
 async function callLLM(systemPrompt, userPrompt) {
@@ -36,8 +36,8 @@ async function callLLM(systemPrompt, userPrompt) {
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
           ],
-          temperature: 0.4,
-          max_tokens: 700,
+          temperature: 0.3,
+          max_tokens: 500,
         }),
       });
       if (res.status === 429) {
@@ -72,10 +72,9 @@ function extractJSON(raw) {
 }
 
 function renderMarkdown(text) {
-  // Remove PLOT lines before rendering
+  // Remove PLOT lines
   text = text.replace(/^PLOT:.*$/gm, '');
 
-  // Handle tables → convert to HTML tables
   const lines = text.split('\n');
   let html = '';
   let inTable = false;
@@ -84,7 +83,6 @@ function renderMarkdown(text) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
-      // Check if separator row
       if (/^\|[\s\-:|]+\|$/.test(line.trim())) continue;
       tableRows.push(line.trim());
       inTable = true;
@@ -99,7 +97,6 @@ function renderMarkdown(text) {
   }
   if (inTable) html += buildTable(tableRows);
 
-  // Clean up
   html = html
     .replace(/\n\n+/g, '</p><p>')
     .replace(/\n/g, '<br>')
@@ -110,9 +107,7 @@ function renderMarkdown(text) {
 
   if (!html.startsWith('<')) html = '<p>' + html;
   if (!html.endsWith('>')) html += '</p>';
-  // Clean empty paragraphs
   html = html.replace(/<p>\s*<\/p>/g, '');
-
   return html;
 }
 

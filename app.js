@@ -192,7 +192,7 @@ window.checkPractice = checkPractice;
 function tryPlot(expr) {
   const container = document.getElementById('plot-container');
   try {
-    plotFunction(expr, container);
+    plotExpression(expr, container);
   } catch {
     container.innerHTML = '';
     document.getElementById('graph-card').classList.add('hidden');

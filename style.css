@@ -261,8 +261,8 @@ input, textarea { font-family: var(--font); }
 .md-table td { color: var(--text-muted); }
 .md-table tr:nth-child(even) td { background: rgba(139,92,246,0.03); }
 
-/* Plot */
-#plot-container { min-height: 300px; border-radius: var(--radius-sm); }
+/* Plot (Desmos) */
+#plot-container { height: 350px; border-radius: var(--radius-sm); overflow: hidden; }
 #graph-card.hidden { display: none; }
 
 /* ===== Practice Problems ===== */
