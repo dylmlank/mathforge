@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSubmit();
   initClear();
   initToggles();
+  initFollowup();
 });
 
 // ===== API Key Modal =====
@@ -199,6 +200,44 @@ function tryPlot(expr) {
   }
 }
 
+// ===== Follow-up =====
+function initFollowup() {
+  const input = document.getElementById('followup-input');
+  const btn = document.getElementById('followup-btn');
+
+  btn.addEventListener('click', () => sendFollowup());
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendFollowup();
+  });
+}
+
+async function sendFollowup() {
+  const input = document.getElementById('followup-input');
+  const history = document.getElementById('followup-history');
+  const question = input.value.trim();
+  if (!question) return;
+
+  input.value = '';
+
+  // Add question to history
+  const msgEl = document.createElement('div');
+  msgEl.className = 'followup-msg';
+  msgEl.innerHTML = `<div class="followup-q">${question}</div><div class="followup-a">${skeleton(2)}</div>`;
+  history.appendChild(msgEl);
+  history.scrollTop = history.scrollHeight;
+
+  try {
+    const context = `Original problem: ${MF.currentHomework}\n\nStudent asks: ${question}`;
+    const response = await callLLM(PROMPTS.followup, context);
+    msgEl.querySelector('.followup-a').innerHTML = renderMarkdown(response);
+    renderMath(msgEl.querySelector('.followup-a'));
+  } catch (e) {
+    msgEl.querySelector('.followup-a').innerHTML = errorHTML(e);
+  }
+
+  history.scrollTop = history.scrollHeight;
+}
+
 // ===== Clear =====
 function initClear() {
   document.getElementById('clear-btn').addEventListener('click', () => {
@@ -206,6 +245,7 @@ function initClear() {
     document.getElementById('results-section').classList.add('hidden');
     document.getElementById('homework-input').value = '';
     document.getElementById('plot-container').innerHTML = '';
+    document.getElementById('followup-history').innerHTML = '';
     document.getElementById('homework-input').focus();
   });
 }

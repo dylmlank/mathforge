@@ -12,6 +12,8 @@ const PROMPTS = {
   practice: `ONLY output JSON: [{"problem":"..","answer":".."},{"problem":"..","answer":".."},{"problem":"..","answer":".."}] with LaTeX in strings.`,
 
   check: '{"correct":true/false,"feedback":"1 sentence"}',
+
+  followup: `Answer the student's follow-up question about the math problem. Be concise (2-4 sentences). ALL math in LaTeX $..$ or $$..$$. No tables.`,
 };
 
 async function callLLM(systemPrompt, userPrompt) {
