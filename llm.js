@@ -1,10 +1,7 @@
-// ===== LLM Module =====
-const MODELS = [
-  'minimax/minimax-m2.5:free',
-  'tencent/hy3-preview:free',
-  'google/gemma-4-26b-a4b-it:free',
-  'inclusionai/ling-2.6-flash:free',
-  'inclusionai/ling-2.6-1t:free',
+// ===== LLM Module — Google Gemini =====
+const GEMINI_MODELS = [
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-flash',
 ];
 
 const PROMPTS = {
@@ -21,23 +18,18 @@ async function callLLM(systemPrompt, userPrompt) {
   const key = window.MF.apiKey;
   if (!key) throw new Error('NO_KEY');
 
-  for (const model of MODELS) {
+  for (const model of GEMINI_MODELS) {
     try {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+      const res = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${key}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'http://localhost:3000',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          temperature: 0.3,
-          max_tokens: 500,
+          contents: [{ parts: [{ text: systemPrompt + '\n\n' + userPrompt }] }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 500,
+          },
         }),
       });
       if (res.status === 429) {
@@ -46,8 +38,7 @@ async function callLLM(systemPrompt, userPrompt) {
       }
       if (!res.ok) continue;
       const data = await res.json();
-      if (data.error) continue;
-      const content = data.choices?.[0]?.message?.content;
+      const content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!content) continue;
       return content.trim();
     } catch (e) {
@@ -72,7 +63,6 @@ function extractJSON(raw) {
 }
 
 function renderMarkdown(text) {
-  // Remove PLOT lines
   text = text.replace(/^PLOT:.*$/gm, '');
 
   const lines = text.split('\n');
