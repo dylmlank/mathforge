@@ -30,5 +30,5 @@ function plotExpression(expr, container) {
     .replace(/\*/g, ' \\cdot ')      // explicit multiply to cdot
     .replace(/(?<!\w)pi(?!\w)/g, '\\pi');
 
-  calc.setExpression({ id: 'main', latex: `y=${clean}`, color: '#8b5cf6' });
+  calc.setExpression({ id: 'main', latex: `y=${clean}` });
 }
