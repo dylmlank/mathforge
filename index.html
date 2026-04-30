@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MathForge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- API Key Modal -->
+  <div id="api-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-icon">&#x2211;</div>
+      <h2>Welcome to MathForge</h2>
+      <p class="modal-desc">Enter your OpenRouter API key to unlock AI-powered math tutoring</p>
+      <input type="password" id="api-key-input" placeholder="sk-or-..." autocomplete="off">
+      <a href="https://openrouter.ai/keys" target="_blank" class="modal-link">Get a free key at openrouter.ai &rarr;</a>
+      <button id="api-key-submit" class="btn btn-primary">Start Learning</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-brand">
+      <span class="nav-icon">&#x222B;</span>
+      <span class="nav-title">MathForge</span>
+    </div>
+    <div class="nav-right">
+      <span id="api-key-display" class="api-key-badge" title="Click to change API key"></span>
+      <button id="hamburger" class="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Layout -->
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-topics" id="sidebar-topics"></div>
+      <div class="sidebar-footer">
+        <div class="progress-label">Overall Progress</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-text" id="progress-text">0%</div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-panel">
+      <!-- Home View -->
+      <div id="view-home" class="view">
+        <div class="home-header">
+          <h1 class="gradient-text">Master Mathematics</h1>
+          <p class="home-subtitle">AI-powered practice, explanations, and visualizations</p>
+        </div>
+        <div class="topic-grid" id="topic-grid"></div>
+      </div>
+
+      <!-- Topic View -->
+      <div id="view-topic" class="view hidden">
+        <div class="topic-header">
+          <h2 id="topic-title" class="gradient-text"></h2>
+          <p id="topic-subtitle"></p>
+        </div>
+        <div class="mode-tabs">
+          <button class="mode-tab active" data-mode="learn">Learn</button>
+          <button class="mode-tab" data-mode="practice">Practice</button>
+          <button class="mode-tab" data-mode="quiz">Quiz</button>
+        </div>
+        <div class="content-area" id="content-area">
+          <!-- Learn Mode -->
+          <div id="mode-learn" class="mode-content">
+            <div class="llm-response" id="learn-response"></div>
+          </div>
+          <!-- Practice Mode -->
+          <div id="mode-practice" class="mode-content hidden">
+            <div class="difficulty-selector">
+              <button class="diff-btn active" data-diff="easy">Easy</button>
+              <button class="diff-btn" data-diff="medium">Medium</button>
+              <button class="diff-btn" data-diff="hard">Hard</button>
+            </div>
+            <div class="problem-area" id="problem-area"></div>
+            <div class="answer-area" id="answer-area">
+              <input type="text" id="answer-input" placeholder="Type your answer (LaTeX ok, e.g. x^2+3x-4)" autocomplete="off">
+              <div class="answer-btns">
+                <button id="submit-answer" class="btn btn-primary">Submit</button>
+                <button id="hint-btn" class="btn btn-secondary">Hint</button>
+                <button id="next-btn" class="btn btn-secondary">Next Problem</button>
+              </div>
+            </div>
+            <div class="feedback-area" id="feedback-area"></div>
+          </div>
+          <!-- Quiz Mode -->
+          <div id="mode-quiz" class="mode-content hidden">
+            <div class="quiz-header" id="quiz-header">
+              <div class="quiz-progress">Question <span id="quiz-qnum">1</span>/5</div>
+              <div class="quiz-timer" id="quiz-timer">
+                <svg class="timer-ring" viewBox="0 0 40 40">
+                  <circle class="timer-bg" cx="20" cy="20" r="18"/>
+                  <circle class="timer-fg" id="timer-fg" cx="20" cy="20" r="18"/>
+                </svg>
+                <span class="timer-text" id="timer-text">90</span>
+              </div>
+            </div>
+            <div class="quiz-problem" id="quiz-problem"></div>
+            <div class="quiz-input">
+              <input type="text" id="quiz-answer-input" placeholder="Your answer..." autocomplete="off">
+              <button id="quiz-submit" class="btn btn-primary">Submit</button>
+            </div>
+            <div class="quiz-results hidden" id="quiz-results">
+              <div class="quiz-score" id="quiz-score"></div>
+              <button id="quiz-retry" class="btn btn-primary">Try Again</button>
+            </div>
+          </div>
+          <!-- Plot Area -->
+          <div class="plot-container" id="plot-container"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Loading skeleton -->
+  <template id="skeleton-template">
+    <div class="skeleton">
+      <div class="skeleton-line wide"></div>
+      <div class="skeleton-line medium"></div>
+      <div class="skeleton-line short"></div>
+    </div>
+  </template>
+
+  <script src="topics.js"></script>
+  <script src="llm.js"></script>
+  <script src="plot.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
