@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initModal();
   initSubmit();
   initClear();
+  initToggles();
 });
 
 // ===== API Key Modal =====
@@ -41,6 +42,23 @@ function initModal() {
   });
 }
 
+// ===== Collapsible Toggles =====
+function initToggles() {
+  document.querySelectorAll('.toggle-header').forEach(header => {
+    header.addEventListener('click', () => {
+      header.classList.toggle('open');
+      const body = document.getElementById(header.dataset.target);
+      if (body.classList.contains('collapsed')) {
+        body.classList.remove('collapsed');
+        body.classList.add('expanded');
+      } else {
+        body.classList.remove('expanded');
+        body.classList.add('collapsed');
+      }
+    });
+  });
+}
+
 // ===== Main Submit =====
 function initSubmit() {
   const btn = document.getElementById('submit-homework');
@@ -62,38 +80,43 @@ async function submitHomework() {
   // Compact the input area
   document.getElementById('input-section').classList.add('compact');
   // Show results
-  const results = document.getElementById('results-section');
-  results.classList.remove('hidden');
+  document.getElementById('results-section').classList.remove('hidden');
 
   // Reset cards
-  document.getElementById('tutor-response').innerHTML = skeleton(5);
-  document.getElementById('deepen-response').innerHTML = skeleton(4);
-  document.getElementById('practice-response').innerHTML = skeleton(3);
+  document.getElementById('tutor-response').innerHTML = skeleton(4);
+  document.getElementById('deepen-response').innerHTML = skeleton(3);
+  document.getElementById('practice-response').innerHTML = skeleton(2);
   document.getElementById('graph-card').classList.add('hidden');
   document.getElementById('plot-container').innerHTML = '';
 
-  // Run tutor (first, most important)
-  try {
-    const tutorText = await callLLM(PROMPTS.tutor, homework);
-    const tutorEl = document.getElementById('tutor-response');
-    tutorEl.innerHTML = renderMarkdown(tutorText);
-    renderMath(tutorEl);
+  // Collapse the dropdowns
+  document.querySelectorAll('.toggle-header').forEach(h => h.classList.remove('open'));
+  document.querySelectorAll('.card-body.expanded').forEach(b => {
+    b.classList.remove('expanded');
+    b.classList.add('collapsed');
+  });
 
+  // Run ALL three calls in parallel for speed
+  const [tutorResult, deepenResult, practiceResult] = await Promise.allSettled([
+    callLLM(PROMPTS.tutor, homework),
+    callLLM(PROMPTS.deepen, `Student is working on: ${homework}`),
+    callLLM(PROMPTS.practice, `Student is working on: ${homework}`),
+  ]);
+
+  // Tutor
+  const tutorEl = document.getElementById('tutor-response');
+  if (tutorResult.status === 'fulfilled') {
+    tutorEl.innerHTML = renderMarkdown(tutorResult.value);
+    renderMath(tutorEl);
     // Try to plot
-    const plotExpr = extractPlotExpr(tutorText);
+    const plotExpr = extractPlotExpr(tutorResult.value);
     if (plotExpr) {
       document.getElementById('graph-card').classList.remove('hidden');
       tryPlot(plotExpr);
     }
-  } catch (e) {
-    document.getElementById('tutor-response').innerHTML = errorHTML(e);
+  } else {
+    tutorEl.innerHTML = errorHTML(tutorResult.reason);
   }
-
-  // Run deepen + practice in parallel
-  const [deepenResult, practiceResult] = await Promise.allSettled([
-    callLLM(PROMPTS.deepen, `The student is working on: ${homework}\nExplain the deeper concepts and connections.`),
-    callLLM(PROMPTS.practice, `The student is working on: ${homework}\nGenerate 3 similar practice problems.`),
-  ]);
 
   // Deepen
   const deepenEl = document.getElementById('deepen-response');
@@ -111,7 +134,6 @@ async function submitHomework() {
     if (Array.isArray(problems) && problems.length > 0) {
       renderPracticeProblems(problems, practiceEl);
     } else {
-      // Fallback: render as text
       practiceEl.innerHTML = renderMarkdown(practiceResult.value);
       renderMath(practiceEl);
     }
@@ -149,12 +171,12 @@ async function checkPractice(idx) {
   try {
     const problemText = problem.querySelector('.problem-text').textContent;
     const response = await callLLM(PROMPTS.check,
-      `Problem: ${problemText}\nCorrect answer: ${correctAnswer}\nStudent answer: ${userAnswer}`);
+      `Problem: ${problemText}\nCorrect: ${correctAnswer}\nStudent: ${userAnswer}`);
     const data = extractJSON(response);
 
     if (data) {
       feedback.className = `feedback ${data.correct ? 'correct' : 'incorrect'}`;
-      feedback.innerHTML = data.feedback || (data.correct ? 'Correct!' : 'Not quite. Try again.');
+      feedback.innerHTML = data.feedback || (data.correct ? 'Correct!' : 'Not quite.');
     } else {
       feedback.className = 'feedback';
       feedback.innerHTML = response;
@@ -170,7 +192,6 @@ window.checkPractice = checkPractice;
 function tryPlot(expr) {
   const container = document.getElementById('plot-container');
   try {
-    // Clean up common LLM formatting
     let clean = expr
       .replace(/\\/g, '')
       .replace(/\{/g, '(').replace(/\}/g, ')')
@@ -184,13 +205,10 @@ function tryPlot(expr) {
       .replace(/exp/g, 'Math.exp')
       .replace(/pi/g, 'Math.PI')
       .replace(/abs/g, 'Math.abs');
-
     plotFunction(clean, container);
   } catch (e) {
-    // Try simpler version
     try {
-      const simple = expr.replace(/\^/g, '**');
-      plotFunction(simple, container);
+      plotFunction(expr.replace(/\^/g, '**'), container);
     } catch {
       container.innerHTML = '';
       document.getElementById('graph-card').classList.add('hidden');
@@ -198,7 +216,7 @@ function tryPlot(expr) {
   }
 }
 
-// ===== Clear / Reset =====
+// ===== Clear =====
 function initClear() {
   document.getElementById('clear-btn').addEventListener('click', () => {
     document.getElementById('input-section').classList.remove('compact');
@@ -218,7 +236,7 @@ function showToast(msg) {
 }
 
 function skeleton(lines) {
-  const widths = ['w100', 'w80', 'w60', 'w100', 'w40'];
+  const widths = ['w100', 'w80', 'w60', 'w40'];
   return '<div class="skeleton">' +
     Array.from({length: lines}, (_, i) =>
       `<div class="skeleton-line ${widths[i % widths.length]}"></div>`
@@ -226,8 +244,8 @@ function skeleton(lines) {
 }
 
 function errorHTML(e) {
-  if (e?.message === 'NO_KEY') return '<p style="color:var(--orange)">Set your OpenRouter API key first (click the key badge in the nav bar).</p>';
-  if (e?.message === 'ALL_RATE_LIMITED') return '<p style="color:var(--orange)">All models are busy. Wait 30 seconds and try again.</p>';
+  if (e?.message === 'NO_KEY') return '<p style="color:var(--orange)">Set your OpenRouter API key first (click the key badge in the nav).</p>';
+  if (e?.message === 'ALL_RATE_LIMITED') return '<p style="color:var(--orange)">All models busy. Wait 30s and try again.</p>';
   return `<p style="color:var(--orange)">Error: ${e?.message || 'Something went wrong'}</p>`;
 }
 

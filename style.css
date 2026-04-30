@@ -226,6 +226,23 @@ input, textarea { font-family: var(--font); }
 }
 .card-body .katex-display { margin: 1rem 0; overflow-x: auto; }
 
+/* Collapsible */
+.toggle-header { cursor: pointer; user-select: none; }
+.toggle-header:hover { background: rgba(139,92,246,0.06); }
+.toggle-arrow {
+  margin-left: auto; font-size: 0.7rem; color: var(--text-muted);
+  transition: transform 0.2s;
+}
+.toggle-header.open .toggle-arrow { transform: rotate(90deg); }
+.card-body.collapsed {
+  max-height: 0; overflow: hidden; padding: 0 1.5rem;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+.card-body.expanded {
+  max-height: 2000px; padding: 1.5rem;
+  transition: max-height 0.4s ease, padding 0.2s ease;
+}
+
 /* Plot */
 #plot-container { min-height: 300px; border-radius: var(--radius-sm); }
 #graph-card.hidden { display: none; }

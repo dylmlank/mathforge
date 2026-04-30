@@ -8,10 +8,18 @@ const MODELS = [
 ];
 
 const PROMPTS = {
-  tutor: 'Math tutor. Walk through this step-by-step. Use $...$ inline, $$...$$ block LaTeX. If there is a function to graph include PLOT: expression on its own line (e.g. PLOT: x^2-5*x+3). Be thorough but clear.',
-  deepen: 'Explain WHY this math works. Connect to related concepts. What is the bigger picture? Use LaTeX. Be insightful, not repetitive.',
-  practice: 'Generate exactly 3 practice problems similar to what the student is working on. Output JSON array: [{"problem":"...","answer":"..."}]. Use LaTeX in problem strings. Vary difficulty slightly.',
-  check: 'Grade this answer. Reply JSON: {"correct":bool,"feedback":"short explanation"}. Use LaTeX if needed.',
+  tutor: `You are a math tutor. Solve this step-by-step concisely.
+RULES:
+- ALL math must be in LaTeX: inline $x^2$ or display $$x = \\frac{-b}{2a}$$
+- Never write math as plain text
+- Keep it short: max 5 steps
+- End with PLOT: js_expression if graphable (e.g. PLOT: x**2-5*x+3)`,
+
+  deepen: `Explain the key concept behind this problem in 3-4 sentences. Connect it to the bigger picture. ALL math in LaTeX $...$ or $$...$$. Be concise.`,
+
+  practice: `Generate 3 similar practice problems. Output ONLY a JSON array: [{"problem":"...","answer":"..."}]. ALL math in LaTeX $...$ delimiters. No explanation, just the JSON.`,
+
+  check: 'Grade this answer. Reply ONLY JSON: {"correct":true/false,"feedback":"1 sentence, LaTeX ok"}',
 };
 
 async function callLLM(systemPrompt, userPrompt) {
@@ -33,8 +41,8 @@ async function callLLM(systemPrompt, userPrompt) {
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
           ],
-          temperature: 0.7,
-          max_tokens: 2000,
+          temperature: 0.5,
+          max_tokens: 1000,
         }),
       });
       if (res.status === 429) {

@@ -75,22 +75,24 @@
         </div>
       </div>
 
-      <!-- Deeper Understanding -->
-      <div class="result-card" id="deepen-card">
-        <div class="card-header">
+      <!-- Deeper Understanding (collapsible) -->
+      <div class="result-card collapsible" id="deepen-card">
+        <div class="card-header toggle-header" data-target="deepen-response">
           <span class="card-icon">&#x1f9e0;</span>
           <h2>Deeper Understanding</h2>
+          <span class="toggle-arrow">&#x25B6;</span>
         </div>
-        <div class="card-body" id="deepen-response"></div>
+        <div class="card-body collapsed" id="deepen-response"></div>
       </div>
 
-      <!-- Practice Problems -->
-      <div class="result-card" id="practice-card">
-        <div class="card-header">
+      <!-- Practice Problems (collapsible) -->
+      <div class="result-card collapsible" id="practice-card">
+        <div class="card-header toggle-header" data-target="practice-response">
           <span class="card-icon">&#x270f;&#xfe0f;</span>
           <h2>Practice Problems</h2>
+          <span class="toggle-arrow">&#x25B6;</span>
         </div>
-        <div class="card-body" id="practice-response"></div>
+        <div class="card-body collapsed" id="practice-response"></div>
       </div>
     </section>
   </main>
