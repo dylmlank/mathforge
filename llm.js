@@ -18,6 +18,7 @@ async function callLLM(systemPrompt, userPrompt) {
   const key = window.MF.apiKey;
   if (!key) throw new Error('NO_KEY');
 
+  let lastError = '';
   for (const model of GEMINI_MODELS) {
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
@@ -36,16 +37,28 @@ async function callLLM(systemPrompt, userPrompt) {
         showToast('Rate limited, trying next model...');
         continue;
       }
-      if (!res.ok) continue;
+      if (res.status === 400 || res.status === 403) {
+        const err = await res.json().catch(() => ({}));
+        lastError = err?.error?.message || 'Invalid API key';
+        continue;
+      }
+      if (!res.ok) {
+        lastError = `HTTP ${res.status}`;
+        continue;
+      }
       const data = await res.json();
       const content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!content) continue;
+      if (!content) {
+        lastError = 'Empty response from model';
+        continue;
+      }
       return content.trim();
     } catch (e) {
+      lastError = e.message;
       continue;
     }
   }
-  throw new Error('ALL_RATE_LIMITED');
+  throw new Error(lastError || 'ALL_RATE_LIMITED');
 }
 
 function extractJSON(raw) {

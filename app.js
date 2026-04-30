@@ -227,8 +227,7 @@ function skeleton(lines) {
 }
 
 function errorHTML(e) {
-  if (e?.message === 'NO_KEY') return '<p style="color:var(--orange)">Set your OpenRouter API key first (click the key badge in the nav).</p>';
-  if (e?.message === 'ALL_RATE_LIMITED') return '<p style="color:var(--orange)">All models busy. Wait 30s and try again.</p>';
+  if (e?.message === 'NO_KEY') return '<p style="color:var(--orange)">Set your Gemini API key first (click the key badge in the nav).</p>';
   return `<p style="color:var(--orange)">Error: ${e?.message || 'Something went wrong'}</p>`;
 }
 
