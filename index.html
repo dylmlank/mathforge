@@ -17,9 +17,9 @@
   <!-- API Key Modal -->
   <div id="api-modal" class="modal-overlay">
     <div class="modal">
-      <div class="modal-icon">&#x2211;</div>
+      <div class="modal-icon">&#x222B;</div>
       <h2>Welcome to MathForge</h2>
-      <p class="modal-desc">Enter your OpenRouter API key to unlock AI-powered math tutoring</p>
+      <p class="modal-desc">Your AI math tutor. Paste homework, get step-by-step help, and practice until you master it.</p>
       <input type="password" id="api-key-input" placeholder="sk-or-..." autocomplete="off">
       <a href="https://openrouter.ai/keys" target="_blank" class="modal-link">Get a free key at openrouter.ai &rarr;</a>
       <button id="api-key-submit" class="btn btn-primary">Start Learning</button>
@@ -36,109 +36,65 @@
       <span class="nav-title">MathForge</span>
     </div>
     <div class="nav-right">
+      <button id="clear-btn" class="btn-icon" title="New session">&#x21bb;</button>
       <span id="api-key-display" class="api-key-badge" title="Click to change API key"></span>
-      <button id="hamburger" class="hamburger" aria-label="Toggle menu">
-        <span></span><span></span><span></span>
-      </button>
     </div>
   </nav>
 
-  <!-- Layout -->
-  <div class="app-layout">
-    <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar">
-      <div class="sidebar-topics" id="sidebar-topics"></div>
-      <div class="sidebar-footer">
-        <div class="progress-label">Overall Progress</div>
-        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-        <div class="progress-text" id="progress-text">0%</div>
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Input Section -->
+    <section class="input-section" id="input-section">
+      <h1 class="hero-title">Paste your homework.<br><span class="gradient-text">Get tutored.</span></h1>
+      <p class="hero-sub">Paste any math problem, equation, or homework question below. I'll walk you through it step-by-step, show you graphs, explain the deeper concepts, and give you practice problems.</p>
+      <div class="input-box">
+        <textarea id="homework-input" placeholder="Paste your math homework here...&#10;&#10;Examples:&#10;• Solve 2x² - 5x + 3 = 0&#10;• Find the derivative of f(x) = x³ - 4x + 2&#10;• What is P(X > 2) if X ~ N(0,1)?&#10;• Find eigenvalues of [[2,1],[1,2]]" rows="6"></textarea>
+        <button id="submit-homework" class="btn btn-primary btn-lg">Help me understand this</button>
       </div>
-    </aside>
+    </section>
 
-    <!-- Main -->
-    <main class="main-panel">
-      <!-- Home View -->
-      <div id="view-home" class="view">
-        <div class="home-header">
-          <h1 class="gradient-text">Master Mathematics</h1>
-          <p class="home-subtitle">AI-powered practice, explanations, and visualizations</p>
+    <!-- Results Section (hidden until submission) -->
+    <section class="results-section hidden" id="results-section">
+      <!-- Tutor Explanation -->
+      <div class="result-card" id="tutor-card">
+        <div class="card-header">
+          <span class="card-icon">&#x1f4a1;</span>
+          <h2>Step-by-Step Explanation</h2>
         </div>
-        <div class="topic-grid" id="topic-grid"></div>
+        <div class="card-body" id="tutor-response"></div>
       </div>
 
-      <!-- Topic View -->
-      <div id="view-topic" class="view hidden">
-        <div class="topic-header">
-          <h2 id="topic-title" class="gradient-text"></h2>
-          <p id="topic-subtitle"></p>
+      <!-- Graph -->
+      <div class="result-card" id="graph-card">
+        <div class="card-header">
+          <span class="card-icon">&#x1f4c8;</span>
+          <h2>Visualization</h2>
         </div>
-        <div class="mode-tabs">
-          <button class="mode-tab active" data-mode="learn">Learn</button>
-          <button class="mode-tab" data-mode="practice">Practice</button>
-          <button class="mode-tab" data-mode="quiz">Quiz</button>
-        </div>
-        <div class="content-area" id="content-area">
-          <!-- Learn Mode -->
-          <div id="mode-learn" class="mode-content">
-            <div class="llm-response" id="learn-response"></div>
-          </div>
-          <!-- Practice Mode -->
-          <div id="mode-practice" class="mode-content hidden">
-            <div class="difficulty-selector">
-              <button class="diff-btn active" data-diff="easy">Easy</button>
-              <button class="diff-btn" data-diff="medium">Medium</button>
-              <button class="diff-btn" data-diff="hard">Hard</button>
-            </div>
-            <div class="problem-area" id="problem-area"></div>
-            <div class="answer-area" id="answer-area">
-              <input type="text" id="answer-input" placeholder="Type your answer (LaTeX ok, e.g. x^2+3x-4)" autocomplete="off">
-              <div class="answer-btns">
-                <button id="submit-answer" class="btn btn-primary">Submit</button>
-                <button id="hint-btn" class="btn btn-secondary">Hint</button>
-                <button id="next-btn" class="btn btn-secondary">Next Problem</button>
-              </div>
-            </div>
-            <div class="feedback-area" id="feedback-area"></div>
-          </div>
-          <!-- Quiz Mode -->
-          <div id="mode-quiz" class="mode-content hidden">
-            <div class="quiz-header" id="quiz-header">
-              <div class="quiz-progress">Question <span id="quiz-qnum">1</span>/5</div>
-              <div class="quiz-timer" id="quiz-timer">
-                <svg class="timer-ring" viewBox="0 0 40 40">
-                  <circle class="timer-bg" cx="20" cy="20" r="18"/>
-                  <circle class="timer-fg" id="timer-fg" cx="20" cy="20" r="18"/>
-                </svg>
-                <span class="timer-text" id="timer-text">90</span>
-              </div>
-            </div>
-            <div class="quiz-problem" id="quiz-problem"></div>
-            <div class="quiz-input">
-              <input type="text" id="quiz-answer-input" placeholder="Your answer..." autocomplete="off">
-              <button id="quiz-submit" class="btn btn-primary">Submit</button>
-            </div>
-            <div class="quiz-results hidden" id="quiz-results">
-              <div class="quiz-score" id="quiz-score"></div>
-              <button id="quiz-retry" class="btn btn-primary">Try Again</button>
-            </div>
-          </div>
-          <!-- Plot Area -->
-          <div class="plot-container" id="plot-container"></div>
+        <div class="card-body">
+          <div id="plot-container"></div>
         </div>
       </div>
-    </main>
-  </div>
 
-  <!-- Loading skeleton -->
-  <template id="skeleton-template">
-    <div class="skeleton">
-      <div class="skeleton-line wide"></div>
-      <div class="skeleton-line medium"></div>
-      <div class="skeleton-line short"></div>
-    </div>
-  </template>
+      <!-- Deeper Understanding -->
+      <div class="result-card" id="deepen-card">
+        <div class="card-header">
+          <span class="card-icon">&#x1f9e0;</span>
+          <h2>Deeper Understanding</h2>
+        </div>
+        <div class="card-body" id="deepen-response"></div>
+      </div>
 
-  <script src="topics.js"></script>
+      <!-- Practice Problems -->
+      <div class="result-card" id="practice-card">
+        <div class="card-header">
+          <span class="card-icon">&#x270f;&#xfe0f;</span>
+          <h2>Practice Problems</h2>
+        </div>
+        <div class="card-body" id="practice-response"></div>
+      </div>
+    </section>
+  </main>
+
   <script src="llm.js"></script>
   <script src="plot.js"></script>
   <script src="app.js"></script>
